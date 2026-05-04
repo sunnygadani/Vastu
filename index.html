@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vastu Shastra Compass – Sunny Gadani</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Noto+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#f9f7f4;font-family:'Noto Sans',sans-serif;color:#1a1a1a;min-height:100vh}
+.vw{padding:24px 16px;max-width:780px;margin:0 auto}
+.section-title{font-family:'Cinzel',serif;text-align:center;font-size:16px;font-weight:600;color:#1a1a1a;letter-spacing:1px;margin-bottom:4px}
+.subtitle{text-align:center;font-size:12px;color:#666;margin-bottom:20px}
+.layout{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:start}
+.panel{display:flex;flex-direction:column;gap:8px}
+.btn{border:1px solid #ddd;border-radius:8px;padding:8px 10px;cursor:pointer;background:#fff;transition:all 0.2s;text-align:left;width:100%}
+.btn:hover{background:#f5f5f5}
+.btn.active{border-width:1.5px}
+.btn-name{font-size:12px;font-weight:500;color:#1a1a1a}
+.btn-sub{font-size:10px;color:#888;margin-top:2px}
+.compass-wrap{width:260px;height:260px;flex-shrink:0}
+.info-box{border:1px solid #e5e5e5;border-radius:12px;padding:12px;background:#f5f5f0;min-height:80px;margin-top:8px;width:260px}
+.info-title{font-family:'Cinzel',serif;font-size:13px;font-weight:600;margin-bottom:6px}
+.info-row{font-size:11px;color:#666;margin-bottom:3px;display:flex;gap:6px;align-items:center}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0}
+.placeholder{font-size:11px;color:#aaa;text-align:center;padding-top:20px}
+.pada-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;margin-top:4px;margin-bottom:6px}
+.pada-cell{border-radius:3px;padding:3px 0;text-align:center;font-size:9px;font-weight:500}
+.pada-good{background:#C0DD97;color:#27500A}
+.pada-bad{background:#F7C1C1;color:#791F1F}
+.legend{display:flex;gap:10px;margin-top:4px;align-items:center}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:#666}
+.legend-dot{width:10px;height:10px;border-radius:2px}
+.side-label{font-size:10px;font-weight:500;color:#666;margin-bottom:2px;margin-top:4px}
+.divider{border:none;border-top:1px solid #e5e5e5;margin:24px 0}
+.tips-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.tip-card{border:1px solid #e5e5e5;border-radius:12px;padding:10px 12px;background:#fff}
+.tip-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.tip-name{font-size:12px;font-weight:500;color:#1a1a1a}
+.tip-note{font-size:11px;color:#666;line-height:1.5}
+.tip-dir{display:inline-block;margin-top:5px;font-size:10px;font-weight:500;padding:2px 8px;border-radius:6px;background:#f0f0ec;color:#666}
+.footer{text-align:center;margin-top:28px;padding-top:18px;border-top:1px solid #e5e5e5}
+.footer-name{font-family:'Cinzel',serif;font-size:14px;font-weight:600;color:#1a1a1a}
+.footer-email{font-size:12px;color:#1D9E75;margin-top:5px}
+.footer-copy{font-size:10px;color:#aaa;margin-top:6px}
+@media(max-width:600px){
+  .layout{grid-template-columns:1fr;justify-items:center}
+  .compass-wrap{width:220px;height:220px}
+  .info-box{width:220px}
+}
+</style>
+</head>
+<body>
+<div class="vw">
+
+  <div class="section-title">Vastu Shastra Compass</div>
+  <div class="subtitle">Click any room to see auspicious padas on the compass</div>
+
+  <div class="layout">
+    <div class="panel" id="left-panel"></div>
+    <div style="display:flex;flex-direction:column;align-items:center">
+      <div class="compass-wrap">
+        <svg id="compass" viewBox="0 0 260 260" width="260" height="260" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <div class="info-box" id="info-box">
+        <div class="placeholder">Select a room or element</div>
+      </div>
+    </div>
+    <div class="panel" id="right-panel"></div>
+  </div>
+
+  <hr class="divider">
+  <div class="section-title" style="margin-bottom:14px">Vastu Tips</div>
+  <div class="tips-grid" id="tips-grid"></div>
+
+  <div class="footer">
+    <div class="footer-name">Sunny Gadani</div>
+    <div class="footer-email">✉ sunnygadani22@gmail.com</div>
+    <div class="footer-copy">Vastu Consultant · All rights reserved</div>
+  </div>
+
+</div>
+
+<script>
+const SIDES=[
+  {side:"East",  padas:[1,2,3,4,5,6,7,8],        startDeg:45},
+  {side:"South", padas:[9,10,11,12,13,14,15,16],  startDeg:135},
+  {side:"West",  padas:[17,18,19,20,21,22,23,24], startDeg:225},
+  {side:"North", padas:[25,26,27,28,29,30,31,32], startDeg:315},
+];
+
+const rooms=[
+  {name:"Mandir / Temple",  tatva:"Vayu Tatva",   color:"#7F77DD",btnColor:"#EEEDFE",emoji:"🛕",good:new Set([30,31,32,1,2,3,4,21,22])},
+  {name:"Kitchen",          tatva:"Agni · Vayu",  color:"#E24B4A",btnColor:"#FCEBEB",emoji:"🍳",good:new Set([6,7,8,9,10,11,12])},
+  {name:"Master Bedroom",   tatva:"Prithvi Tatva",color:"#BA7517",btnColor:"#FAEEDA",emoji:"🛏",good:new Set([14,15,16,17,18,19,20])},
+  {name:"Children Room",    tatva:"Vayu Tatva",   color:"#7F77DD",btnColor:"#EEEDFE",emoji:"🧒",good:new Set([31,32,1,2])},
+  {name:"Living Room",      tatva:"Jal Tatva",    color:"#378ADD",btnColor:"#E6F1FB",emoji:"🛋",good:new Set([22,23,24,25,26,27,28,29,30,31,32,1,2,3,4,5,6,7,8,9,10,11,12])},
+  {name:"Bathroom",         tatva:"Vayu Tatva",   color:"#7F77DD",btnColor:"#EEEDFE",emoji:"🚿",good:new Set([6,7,14,15,23])},
+  {name:"Study Room",       tatva:"Vayu Tatva",   color:"#5DCAA5",btnColor:"#E1F5EE",emoji:"📚",good:new Set([20,21,22,23,31,32,1,2])},
+  {name:"Main Entrance",    tatva:"Jal Tatva",    color:"#1D9E75",btnColor:"#E1F5EE",emoji:"🚪",good:new Set([1,2,3,4,5,11,12,20,21,27])},
+  {name:"Pooja Room",       tatva:"Jal · Akash",  color:"#378ADD",btnColor:"#E6F1FB",emoji:"🪔",good:new Set([30,31,32,1,2,3,4,21,22])},
+  {name:"Store Room",       tatva:"Agni Tatva",   color:"#E24B4A",btnColor:"#FCEBEB",emoji:"📦",good:new Set([15,16,17,18,19,23,24,25,26,27])},
+];
+
+const tips=[
+  {emoji:"👟",name:"Shoe Rack",            dir:"Near Main Entrance",  note:"Place beside the door, outside or at the entrance. Avoid keeping inside the home."},
+  {emoji:"💊",name:"Medicine Box",          dir:"North to North-East", note:"Keep in the zone between North and North-East for health benefits."},
+  {emoji:"🪞",name:"Mirror",                dir:"North & East walls",  note:"Place mirrors only on North or East walls. Avoid South and West walls."},
+  {emoji:"🕐",name:"Watch / Wall Clock",    dir:"North & East walls",  note:"Hang clocks on North or East walls only. Avoid South wall."},
+  {emoji:"🐦",name:"Chabutro (Bird Feeder)",dir:"South-West",          note:"Place bird feeder in the South-West zone of the compound."},
+  {emoji:"🪑",name:"Sheshow (Swing)",       dir:"South-West",          note:"Swing should be placed in the South-West area of the house or compound."},
+  {emoji:"📺",name:"Entertainment Zone",    dir:"NE to East",          note:"Place TV or entertainment unit in the zone between North-East and East."},
+  {emoji:"🪣",name:"Overhead Water Tank",   dir:"West to North-West",  note:"Overhead tank should be placed between West and North-West direction."},
+  {emoji:"💧",name:"Ground Level Tank",     dir:"Jal Tatva zone",      note:"Can be placed in any Jal Tatva zone. Strictly avoid North-East direction."},
+  {emoji:"⬇️",name:"Underground Tank",     dir:"Jal Tatva zone",      note:"Underground tank in Jal Tatva zone is fine. Strictly avoid North-East."},
+  {emoji:"🏦",name:"Tijori (Safe/Locker)",  dir:"West (270°)",         note:"Place the safe or locker facing West at 270° for wealth retention."},
+];
+
+const DIR_LABELS=[
+  {label:"N",deg:0},{label:"NE",deg:45},{label:"E",deg:90},
+  {label:"SE",deg:135},{label:"S",deg:180},{label:"SW",deg:225},
+  {label:"W",deg:270},{label:"NW",deg:315}
+];
+
+const cx=130,cy=130,R=108,Ri=62;
+let activeIdx=null;
+
+function pt(deg,rad){const a=(deg-90)*Math.PI/180;return{x:cx+rad*Math.cos(a),y:cy+rad*Math.sin(a)};}
+function mkEl(tag,attrs){const el=document.createElementNS("http://www.w3.org/2000/svg",tag);for(const[k,v]of Object.entries(attrs))el.setAttribute(k,v);return el;}
+
+function drawPadas(svg,goodSet){
+  SIDES.forEach(s=>{
+    s.padas.forEach((pNum,pi)=>{
+      const start=s.startDeg+pi*(90/8);
+      const end=start+(90/8)-0.6;
+      const fill=goodSet.has(pNum)?"#639922":"#E24B4A";
+      const oR=R,iR=R-14;
+      const os=pt(start,oR),oe=pt(end,oR),is=pt(start,iR),ie=pt(end,iR);
+      const d=`M${os.x},${os.y} A${oR},${oR} 0 0,1 ${oe.x},${oe.y} L${ie.x},${ie.y} A${iR},${iR} 0 0,0 ${is.x},${is.y} Z`;
+      svg.appendChild(mkEl("path",{d,fill,opacity:"0.92"}));
+      const mp=pt((start+end)/2,R-7);
+      const t=mkEl("text",{x:mp.x,y:mp.y,"text-anchor":"middle","dominant-baseline":"middle","font-size":"6.5","font-weight":"600",fill:"#fff"});
+      t.textContent=pNum;svg.appendChild(t);
+    });
+  });
+}
+
+function buildCompass(idx){
+  const svg=document.getElementById('compass');
+  svg.innerHTML='';
+  svg.appendChild(mkEl("circle",{cx,cy,r:R,fill:"none",stroke:"#ccc","stroke-width":"0.5"}));
+  svg.appendChild(mkEl("circle",{cx,cy,r:Ri,fill:"#f5f5f0",stroke:"#ddd","stroke-width":"0.5"}));
+  if(idx!==null){drawPadas(svg,rooms[idx].good);}
+  else{DIR_LABELS.forEach(d=>{const p1=pt(d.deg,Ri),p2=pt(d.deg,R);svg.appendChild(mkEl("line",{x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y,stroke:"#ddd","stroke-width":"0.5"}));});}
+  DIR_LABELS.forEach(d=>{
+    const p=pt(d.deg,R+18);
+    const t=mkEl("text",{x:p.x,y:p.y,"text-anchor":"middle","dominant-baseline":"middle","font-size":"9","font-weight":"500",fill:"#999"});
+    t.textContent=d.label;svg.appendChild(t);
+  });
+  ["Vastu","Compass"].forEach((txt,i)=>{
+    const t=mkEl("text",{x:cx,y:cy+(i===0?-6:8),"text-anchor":"middle","dominant-baseline":"middle","font-size":"9",fill:"#999"});
+    t.textContent=txt;svg.appendChild(t);
+  });
+}
+
+function updateInfo(idx){
+  const box=document.getElementById('info-box');
+  if(idx===null){box.innerHTML='<div class="placeholder">Select a room or element</div>';return;}
+  const rm=rooms[idx];
+  let sidesHTML='';
+  SIDES.forEach(s=>{
+    sidesHTML+=`<div class="side-label">${s.side}</div><div class="pada-grid">`;
+    s.padas.forEach(p=>{const g=rm.good.has(p);sidesHTML+=`<div class="pada-cell ${g?'pada-good':'pada-bad'}">${p}</div>`;});
+    sidesHTML+='</div>';
+  });
+  box.innerHTML=`<div class="info-title" style="color:${rm.color}">${rm.emoji} ${rm.name}</div>
+  <div class="info-row"><span class="dot" style="background:${rm.color}"></span><span>${rm.tatva}</span></div>
+  <div style="margin-top:6px">${sidesHTML}</div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#C0DD97"></div>Auspicious</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#F7C1C1"></div>Avoid</div>
+  </div>`;
+}
+
+function buildButtons(){
+  const left=document.getElementById('left-panel');
+  const right=document.getElementById('right-panel');
+  const half=Math.ceil(rooms.length/2);
+  rooms.forEach((rm,i)=>{
+    const btn=document.createElement('button');
+    btn.className='btn';btn.id='btn-'+i;
+    btn.innerHTML=`<div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px">${rm.emoji}</span><div><div class="btn-name">${rm.name}</div><div class="btn-sub">${rm.tatva}</div></div></div>`;
+    btn.addEventListener('click',()=>{
+      activeIdx=(activeIdx===i)?null:i;
+      buildCompass(activeIdx);updateInfo(activeIdx);
+      document.querySelectorAll('.btn').forEach((b,bi)=>{
+        const on=bi===activeIdx;
+        b.classList.toggle('active',on);
+        b.style.borderColor=on?rooms[bi].color:'';
+        b.style.background=on?rooms[bi].btnColor:'';
+      });
+    });
+    (i<half?left:right).appendChild(btn);
+  });
+}
+
+function buildTips(){
+  const grid=document.getElementById('tips-grid');
+  tips.forEach(t=>{
+    const card=document.createElement('div');
+    card.className='tip-card';
+    card.innerHTML=`<div class="tip-header"><span style="font-size:16px">${t.emoji}</span><span class="tip-name">${t.name}</span></div>
+    <div class="tip-note">${t.note}</div>
+    <span class="tip-dir">${t.dir}</span>`;
+    grid.appendChild(card);
+  });
+}
+
+buildButtons();buildCompass(null);updateInfo(null);buildTips();
+</script>
+</body>
+</html>
